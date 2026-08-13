@@ -2,14 +2,13 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { LINE_WIDTH, PAGE_STYLE, CARD_SHELL_STYLE, gridPlacement } from './gridConstants'
 import { NAV_HEIGHT_UNITS, useGridDimensions, buildNavRowCells, getSectionBoxes, fillDecorativeSquares } from './gridLayout'
-import { assignIcons } from './icons'
+import { assignIcons, assignStrings } from './icons'
 import { SECTIONS } from './sections'
 import NavBox from './NavBox'
 import ContentCard from './ContentCard'
 import Square from './Square'
 
 const SECTION_COUNT = SECTIONS.length
-const WHEEL_LOCK_MS = 700 // cooldown after a wheel-triggered section jump
 
 const TestGrid = () => {
   const { cols, rows: rowsPerSection, unit } = useGridDimensions()
@@ -37,43 +36,18 @@ const TestGrid = () => {
     navigate(location.pathname, { replace: true, state: null })
   }, [location.state, location.pathname, navigate, scrollToSection])
 
-  // Turns the wheel/trackpad into section-at-a-time paging, like clicking a
-  // nav button: every native scroll is blocked, and the first wheel tick of
-  // a gesture jumps one section in that direction. wheelLockRef (a ref, not
-  // state) blocks any further jumps until WHEEL_LOCK_MS after the jump
-  // starts, so one physical scroll gesture - which fires many wheel events -
-  // only triggers a single section change instead of skipping several.
-  const wheelLockRef = useRef(false)
-
-  useEffect(() => {
-    const pageEl = pageRef.current
-    if (!pageEl) return
-
-    const handleWheel = (event) => {
-      event.preventDefault()
-      if (wheelLockRef.current) return
-
-      const nextSection = activeSection + (event.deltaY > 0 ? 1 : -1)
-      if (nextSection < 0 || nextSection >= SECTION_COUNT) return
-
-      wheelLockRef.current = true
-      scrollToSection(nextSection)
-      setTimeout(() => {
-        wheelLockRef.current = false
-      }, WHEEL_LOCK_MS)
-    }
-
-    pageEl.addEventListener('wheel', handleWheel, { passive: false })
-    return () => pageEl.removeEventListener('wheel', handleWheel)
-  }, [activeSection, scrollToSection])
-
   const cells = useMemo(() => {
     const all = []
 
+    // assignIcons/assignStrings are called per-section (rather than once
+    // over every cell on the page) so each section gets its own 6-7 icons
+    // and 6-7 text snippets instead of them clustering wherever chance
+    // happens to land them. assignStrings runs after assignIcons so the two
+    // never land on the same square.
     const addSectionBody = (sectionIndex, rowOffset, bodyRows) => {
       const { occupied, cells: reservedCells } = getSectionBoxes(cols, bodyRows, SECTIONS[sectionIndex], `sections.js[${sectionIndex}]`)
       reservedCells.forEach((cell) => all.push({ ...cell, row: cell.row + rowOffset }))
-      fillDecorativeSquares(cols, bodyRows, occupied).forEach((cell) =>
+      assignStrings(assignIcons(fillDecorativeSquares(cols, bodyRows, occupied))).forEach((cell) =>
         all.push({ ...cell, row: cell.row + rowOffset, type: 'square' }),
       )
     }
@@ -86,6 +60,9 @@ const TestGrid = () => {
       all.push({ type: 'sentinel', sectionIndex: section, col: 0, row: rowOffset, colSpan: cols, rowSpan: rowsPerSection })
 
       if (section === 0 && rowsPerSection > NAV_HEIGHT_UNITS) {
+        // No icon/string flair on the nav row itself - it's a single row,
+        // so the same fixed 6-7-per-call quota used for a whole multi-row
+        // section body would saturate nearly every filler square in it.
         buildNavRowCells(cols).forEach((cell) => all.push({ ...cell, row: cell.row + rowOffset }))
         addSectionBody(section, rowOffset + NAV_HEIGHT_UNITS, rowsPerSection - NAV_HEIGHT_UNITS)
       } else {
@@ -93,7 +70,7 @@ const TestGrid = () => {
       }
     }
 
-    return assignIcons(all)
+    return all
   }, [cols, rowsPerSection])
 
   // Tracks which section is "active" via IntersectionObserver against the
@@ -151,7 +128,12 @@ const TestGrid = () => {
             const { component: Component = ContentCard, type, ...cellProps } = cell
             const { col, row, colSpan, rowSpan } = cellProps
             return (
-              <div key={i} style={{ ...CARD_SHELL_STYLE, ...gridPlacement(col, row, colSpan, rowSpan) }}>
+              // zIndex lifts the card above the decorative squares - they're
+              // grid items on the same grid, and squares are added after
+              // cards in `cells` (see addSectionBody), so without this a
+              // square's outline paints over any content (e.g. a mockup
+              // image) a card intentionally overflows past its own edge.
+              <div key={i} style={{ ...CARD_SHELL_STYLE, ...gridPlacement(col, row, colSpan, rowSpan), zIndex: 1 }}>
                 <Component {...cellProps} />
               </div>
             )
@@ -162,7 +144,17 @@ const TestGrid = () => {
                 key={i}
                 data-section-sentinel
                 data-section-index={cell.sectionIndex}
-                style={{ ...gridPlacement(cell.col, cell.row, cell.colSpan, cell.rowSpan), pointerEvents: 'none' }}
+                style={{
+                  ...gridPlacement(cell.col, cell.row, cell.colSpan, cell.rowSpan),
+                  pointerEvents: 'none',
+                  // Doubles as the section's scroll-snap target: 'start'
+                  // aligns its top edge with the scroll container's top
+                  // (matching scrollToSection's own math), and 'always'
+                  // stops a fast fling here instead of letting it sail past
+                  // to a farther section - i.e. one section per gesture.
+                  scrollSnapAlign: 'start',
+                  scrollSnapStop: 'always',
+                }}
               />
             )
           }

@@ -58,7 +58,8 @@ import FreelanceCard from './FreelanceCard'
 import AngularCard from './AngularCard'
 import AXONCard from './AXONCard'
 import ACESCard from './ACESCard'
-import ContactCard from './ContactCard'
+import MessageCard from './MessageCard'
+import SocialButtons from './SocialButtons'
 
 export const SECTIONS = [
   {
@@ -80,7 +81,7 @@ export const SECTIONS = [
   {
     title: 'Section 3',
     boxes: [
-      {component: DesignCard, align: 'center', valign: 'center', colSpan: 14, rowSpan: 7}
+      {component: DesignCard, align: 'center', valign: 'center', rowOffset: 1, colSpan: 14, rowSpan: 7}
     ],
     text: "Placeholder text for this section - swap in real copy whenever you're ready.",
     image: null,
@@ -88,19 +89,33 @@ export const SECTIONS = [
   {
     // 2 boxes: side by side, centered as a pair (alignSpan on the first box
     // reserves room for both boxes plus the gap between them, so the whole
-    // pair centers as a group instead of just the first box).
+    // pair centers as a group instead of just the first box). alignSpan/gap
+    // must keep colSpan*2 + gap EVEN - the grid's own column count (`cols`
+    // in gridLayout.js) is always forced even, so an odd-total pair can
+    // never land on integer column boundaries symmetrically; it'll always
+    // round 1 unit toward one side. (gap: 1 here previously gave a total of
+    // 11, an odd number - hence the pair reliably sitting 1 unit off
+    // center. gap: 2 gives 12, which splits evenly no matter the viewport.)
     title: 'Section 4',
     boxes: [
-      { component: AXONCard, align: 'center', valign: 'center', alignSpan: 11, colSpan: 5, rowSpan: 3, text: 'Left box' },
-      { component: ACESCard, relativeTo: 0, placement: 'right', gap: 1, colSpan: 5, rowSpan: 3, text: 'Right box' },
+      { component: AXONCard, align: 'center', valign: 'center', alignSpan: 12, colSpan: 5, rowSpan: 5, text: 'Left box' },
+      { component: ACESCard, relativeTo: 0, placement: 'right', gap: 2, colSpan: 5, rowSpan: 5, text: 'Right box' },
     ],
   },
   {
+    // 2 boxes: a message box with a row of 4 icon buttons below it, the
+    // pair centered together as a group. valignSpan on the message box (its
+    // own rowSpan + the 1-row gap + the button row's rowSpan) centers that
+    // whole vertical stack, the same way alignSpan centers Section 4's pair
+    // horizontally. The button row's align: 'center' then centers *it*
+    // relative to the message box's own horizontal center - which works out
+    // to the section's center too, since the message box itself is centered
+    // with no anchor of its own - even though the two boxes are different
+    // widths (4 vs 8), because centering-on-a-center is width-independent.
     title: 'Section 5',
     boxes: [
-      { component: ContactCard, align: 'center', valign: 'center', rowOffset: 1, colSpan: 8, rowSpan: 8}
+      { component: MessageCard, align: 'center', valign: 'center', valignSpan: 5, colSpan: 4, rowSpan: 2 },
+      { component: SocialButtons, relativeTo: 0, placement: 'below', gap: 1, align: 'center', colSpan: 8, rowSpan: 2 },
     ],
-    text: "Placeholder text for this section - swap in real copy whenever you're ready.",
-    image: null,
   },
 ]

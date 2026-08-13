@@ -1,7 +1,8 @@
 import React from 'react'
 import { RADIUS, LINE_COLOR, gridPlacement } from './gridConstants'
+import { TYPE } from './typography'
 
-const ACTIVE_SHADOW = 'inset 0 0 20px rgba(255, 170, 0, 0.4)'
+const ACTIVE_UNDERLINE_COLOR = '#FFAA00'
 
 const styles = {
   navBox: {
@@ -17,17 +18,23 @@ const styles = {
     cursor: 'pointer',
   },
   navLabel: {
-    fontFamily: 'sans-serif',
-    fontSize: 14,
+    ...TYPE.h6,
     color: '#333333',
     whiteSpace: 'nowrap',
     padding: '0 8px',
+  },
+  navLabelActive: {
+    fontWeight: 700,
+    textDecorationLine: 'underline',
+    textDecorationColor: ACTIVE_UNDERLINE_COLOR,
+    textDecorationThickness: '2px',
+    textUnderlineOffset: '4px',
   },
 }
 
 const NavBox = ({ col, row, colSpan, rowSpan, label, active, onClick }) => {
   // The button for the section you're currently viewing is disabled (no
-  // point scrolling to where you already are) and carries the active shadow;
+  // point scrolling to where you already are) and reads bold + underlined;
   // every other button is enabled and plain.
   const handleKeyDown = (event) => {
     if (active) return
@@ -47,10 +54,10 @@ const NavBox = ({ col, row, colSpan, rowSpan, label, active, onClick }) => {
       style={{
         ...styles.navBox,
         ...gridPlacement(col, row, colSpan, rowSpan),
-        ...(active ? { boxShadow: ACTIVE_SHADOW, cursor: 'default' } : null),
+        ...(active ? { cursor: 'default' } : null),
       }}
     >
-      <span style={styles.navLabel}>{label}</span>
+      <span style={{ ...styles.navLabel, ...(active ? styles.navLabelActive : null) }}>{label}</span>
     </div>
   )
 }

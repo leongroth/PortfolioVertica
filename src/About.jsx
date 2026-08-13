@@ -1,5 +1,6 @@
 import React from 'react'
 import Leon from './assets/Icons/Pictures/Leon.png'
+import { TYPE } from './typography'
 
 
 const About = () => {
@@ -8,10 +9,10 @@ const About = () => {
       <img src={Leon} />
       <div style={styles.textContainer}>
         <div style={styles.headings}>
-          <h1 style={{margin: 0,}}>I'm Leon Groth</h1>
-          <h6 style={{margin: 0,}}>M.Sc. Interaction Design</h6>
+          <h1 style={{...TYPE.h1, margin: 0,}}>I'm Leon Groth</h1>
+          <h6 style={{...TYPE.h6, margin: 0,}}>M.Sc. Interaction Design</h6>
         </div>
-        <p>Over the course of the last 5 years, i have studied interaction design at Aalborg University, and subsequently achieved a bachelors degree and a masters degree in the field. In my free time, i have worked hard on expanding my skills both in UI design and web development, and have even been fortunate enough to learn from some talented developers at KMD. This page is designed to show off some of the exciting projects I have worked on over the past years.</p>
+        <p style={TYPE.body}>Over the course of the last 5 years, i have studied interaction design at Aalborg University, and subsequently achieved a bachelors degree and a masters degree in the field. In my free time, i have worked hard on expanding my skills both in UI design and web development, and have even been fortunate enough to learn from some talented developers at KMD. This page is designed to show off some of the exciting projects I have worked on over the past years.</p>
       </div>
     </div>
   )

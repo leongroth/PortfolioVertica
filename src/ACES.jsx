@@ -1,8 +1,90 @@
 import React from 'react'
+import { TYPE } from './typography'
+import ACESDesign from './assets/Icons/Pictures/ACESDesign.png'
 
-// TestGrid's cardShell already provides positioning, background, border,
-// rounded corners and the drop shadow - this just needs to fill that shell
-// with its own content.
-const ACES = () => <div style={{ width: '100%', height: '100%' }} />
+
+import PythonIcon from './assets/Icons/Skills/Python.svg'
+import ClaudeIcon from './assets/Icons/Skills/Claude.svg'
+import LinuxIcon from './assets/Icons/Skills/Linux.svg'
+import ReactIcon from './assets/Icons/Skills/React.svg'
+import TailwindIcon from './assets/Icons/Skills/Tailwind.svg'
+import JavascriptIcon from './assets/Icons/Skills/Javascript.svg'
+import GithubIcon from './assets/Icons/Skills/Github.svg'
+
+const ACES = () => (
+  <div style={styles.main}>
+    <div style={styles.headings}>
+      <h1 style={{margin: 0}}>ACES</h1>
+      <h4 style={{margin: 0}}>Our Accessibility tool for UI Designers</h4>
+    </div>
+
+    <div style={styles.bread}>
+      <img src={ACESDesign} style={styles.image}/>
+      <p style={styles.text}>Our first SaaS fully developed is a tool designed to assist UI Designers in designing for accessibility. ACES provides feedback on Designs by identifying UI elements in a user uploaded screenshot using a Machine Learning model trained on our data.<br/><br/>
+
+        These identified UI elements are then analysed using OpenCV and Pytesseract, and text is evaluated using a LLM. Developing the backend and connecting it to the frontend of our SaaS has tested our development skills, and even required us to ask for help from a more experienced developer.<br/><br/>
+
+        Throughout the development of ACES I have learned a lot about planning and executing a development strategy, and allowed me to administrate the development of a real product.
+        I have also learned a lot about server setup in Linux.</p>
+    </div>
+
+    <div style={styles.tech}>
+      <h4>Tech used in development</h4>
+      <div style={styles.skills}>
+        <img src={PythonIcon} />
+        <img src={ClaudeIcon} />
+        <img src={LinuxIcon} />
+        <img src={ReactIcon} />
+        <img src={TailwindIcon} />
+        <img src={JavascriptIcon} />
+        <img src={GithubIcon} />
+      </div>
+    </div>
+
+  </div>
+)
+
+const styles = {
+  main: {
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '64px'
+  },
+  headings: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+
+  },
+  bread: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '64px'
+  },
+  image: {
+    width: '40%'
+  },
+  text: {
+    width: '40%'
+  },
+  tech: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  skills: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: '16px',
+  }
+}
 
 export default ACES

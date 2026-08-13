@@ -2,7 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LINE_WIDTH, PAGE_STYLE, CARD_SHELL_STYLE, gridPlacement } from './gridConstants'
 import { NAV_HEIGHT_UNITS, useGridDimensions, buildNavRowCells, createMatrix, markOccupied, fillDecorativeSquares } from './gridLayout'
-import { assignIcons } from './icons'
+import { assignIcons, assignStrings } from './icons'
 import NavBox from './NavBox'
 import Square from './Square'
 
@@ -30,11 +30,13 @@ const ContentPage = ({ children }) => {
   if ((cols - contentColSpan) % 2 !== 0) contentColSpan -= 1
   const contentCol = (cols - contentColSpan) / 2
 
-  const navRowCells = assignIcons(buildNavRowCells(cols))
+  // No icon/string flair on the nav row itself - see TestGrid's matching
+  // comment: the fixed 6-7-per-call quota would saturate its one thin row.
+  const navRowCells = buildNavRowCells(cols)
 
   const occupied = createMatrix(cols, bodyRows)
   markOccupied(occupied, contentCol, 0, contentColSpan, bodyRows)
-  const bodySquares = assignIcons(fillDecorativeSquares(cols, bodyRows, occupied))
+  const bodySquares = assignStrings(assignIcons(fillDecorativeSquares(cols, bodyRows, occupied)))
 
   const gridStyle = {
     display: 'grid',

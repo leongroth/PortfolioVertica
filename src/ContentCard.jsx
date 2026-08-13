@@ -1,5 +1,6 @@
 import React from 'react'
 import { RADIUS } from './gridConstants'
+import { TYPE } from './typography'
 
 const styles = {
   // TestGrid's cardShell already provides background/border/radius/shadow
@@ -33,15 +34,14 @@ const styles = {
     display: 'block',
   },
   cardTitle: {
+    ...TYPE.h2,
     margin: 0,
-    fontFamily: 'sans-serif',
-    fontSize: 20,
+    fontSize: 20, // kept compact for the card's small footprint
     color: '#111111',
   },
   cardText: {
+    ...TYPE.bodySm,
     margin: 0,
-    fontFamily: 'sans-serif',
-    fontSize: 13,
     lineHeight: 1.5,
     color: '#666666',
   },
