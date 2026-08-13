@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { LINE_WIDTH, getPageStyle, CARD_SHELL_STYLE, gridPlacement } from './gridConstants'
 import {
@@ -10,6 +10,7 @@ import {
   fillDecorativeSquares,
 } from './gridLayout'
 import { assignIcons, assignStrings } from './icons'
+import { useSectionPaging } from './useSectionPaging'
 import { SECTIONS } from './sections'
 import NavBox from './NavBox'
 import ContentCard from './ContentCard'
@@ -25,13 +26,13 @@ const TestGrid = () => {
   const location = useLocation()
   const navigate = useNavigate()
 
-  // On desktop every section is exactly one screen tall, so the page snaps
-  // from section to section. Below that a section grows to fit whatever its
-  // boxes need once they stack into a column (see getSectionRows), which
-  // means sections are different heights and often taller than the screen -
-  // snapping to them would fight the user's scrolling, so it's off there and
+  // On desktop every section is exactly one screen tall, so the page moves
+  // from section to section (useSectionPaging). Below that a section grows
+  // to fit whatever its boxes need once they stack into a column (see
+  // getSectionRows), which means sections are different heights and often
+  // taller than the screen - paging through them would fight the reader, so
   // tablet/phone are an ordinary continuous scroll.
-  const snapping = breakpoint === 'desktop'
+  const paging = breakpoint === 'desktop'
 
   // Where each section starts, in grid rows from the top of the page.
   // Sections used to all be the same height, so this was just index * rows;
@@ -94,12 +95,7 @@ const TestGrid = () => {
     return { cells: all, sectionTops: tops, totalRows: top }
   }, [cols, screenRows, breakpoint])
 
-  const scrollToSection = useCallback(
-    (sectionIndex, behavior = 'smooth') => {
-      pageRef.current?.scrollTo({ top: (sectionTops[sectionIndex] ?? 0) * pitch, behavior })
-    },
-    [sectionTops, pitch],
-  )
+  const scrollToSection = useSectionPaging({ pageRef, sectionTops, pitch, enabled: paging })
 
   // Other pages navigate back here with { sectionIndex } in router state
   // (see BackButton) since they can't scroll a page they're not on. Once
@@ -142,14 +138,14 @@ const TestGrid = () => {
     return () => observer.disconnect()
   }, [cells])
 
-  // Both styles are memoised so their object identity survives a re-render.
-  // The page div is the scroll container: React skips the style diff
-  // entirely when the object is the same reference, so nothing can touch the
-  // scroller's inline style while a snap animation is running.
-  const pageStyle = useMemo(
-    () => ({ ...getPageStyle(breakpoint), scrollSnapType: snapping ? 'y mandatory' : 'none' }),
-    [breakpoint, snapping],
-  )
+  // Memoised so its object identity survives a re-render. The page div is
+  // the scroll container: React skips the style diff entirely when the
+  // object is the same reference, so nothing can touch the scroller's inline
+  // style while an animation is running.
+  //
+  // No scrollSnapType: paging is animated in JS now (see useSectionPaging
+  // for why), and CSS snapping would re-snap after every frame of it.
+  const pageStyle = useMemo(() => getPageStyle(breakpoint), [breakpoint])
 
   const gridStyle = useMemo(
     () => ({
@@ -195,26 +191,13 @@ const TestGrid = () => {
               style={{
                 ...gridPlacement(cell.col, cell.row, cell.colSpan, cell.rowSpan),
                 pointerEvents: 'none',
-                // Doubles as the section's scroll-snap target on desktop:
-                // 'start' aligns its top edge with the scroll container's
-                // top, matching scrollToSection's own math.
-                //
-                // No scroll-snap-stop: 'always' here. It forced the scroller
-                // to come to rest at every single section, and while that
-                // snap animation runs Chrome swallows further wheel input -
-                // so a second flick during the animation did nothing and the
-                // page felt like it was ignoring every other scroll. Without
-                // it, a firm gesture can carry across more than one section
-                // and still lands on a section boundary, because the snap
-                // type below is still 'mandatory'.
-                ...(snapping ? { scrollSnapAlign: 'start' } : null),
               }}
             />
           )
         }
         return <Square key={i} {...cell} />
       }),
-    [cells, snapping, breakpoint],
+    [cells, breakpoint],
   )
 
   return (
