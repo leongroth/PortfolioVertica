@@ -10,7 +10,18 @@
 // two leaves a column of text too narrow to read. Type sizes, icon sizes and
 // the gap between blocks come from the CSS variables in index.css, so they
 // step down a breakpoint at a time without this file knowing the numbers.
+// Cached per (breakpoint, imageWidth) so a re-render hands React the same
+// style objects it saw last time and it can skip diffing them - see the
+// matching note in projectCardStyles.js.
+const cache = new Map()
+
 export const getProjectPageStyles = (breakpoint, { imageWidth = '40%' } = {}) => {
+  const key = `${breakpoint}|${imageWidth}`
+  if (!cache.has(key)) cache.set(key, buildProjectPageStyles(breakpoint, imageWidth))
+  return cache.get(key)
+}
+
+const buildProjectPageStyles = (breakpoint, imageWidth) => {
   const stacked = breakpoint !== 'desktop'
 
   return {

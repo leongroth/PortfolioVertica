@@ -7,8 +7,7 @@ import { TYPE } from './typography'
 // left at its natural size on desktop (which is what the layout was drawn
 // around) and constrained by the box everywhere else.
 const About = ({ breakpoint }) => {
-  const stacked = breakpoint === 'phone'
-  const styles = getStyles(breakpoint, stacked)
+  const styles = getStyles(breakpoint)
 
   return (
     <div style={styles.mainContainer}>
@@ -24,43 +23,57 @@ const About = ({ breakpoint }) => {
   )
 }
 
-const getStyles = (breakpoint, stacked) => ({
-  mainContainer: {
-    display: 'flex',
-    width: '100%',
-    height: '100%',
-    boxSizing: 'border-box',
-    flexDirection: stacked ? 'column' : 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingLeft: stacked ? '20px' : '32px',
-    paddingRight: stacked ? '20px' : 0,
-    paddingTop: stacked ? '20px' : 0,
-    paddingBottom: stacked ? '20px' : 0,
-    gap: stacked ? '16px' : '32px',
-  },
-  image: {
-    // Desktop keeps the photo at its natural size, exactly as before; the
-    // smaller layouts cap it against the box instead.
-    ...(breakpoint === 'desktop'
-      ? null
-      : { maxHeight: stacked ? '30%' : '80%', maxWidth: stacked ? '50%' : '35%', objectFit: 'contain' }),
-  },
-  headings: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  textContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: stacked ? '16px' : '48px',
-    justifyContent: 'center',
-    width: '100%',
-    paddingRight: stacked ? 0 : '32px',
-  },
-})
+// One style set per breakpoint, built on first use and reused after that, so
+// a re-render hands React the same objects and it can skip diffing them -
+// see the note in projectCardStyles.js.
+const cache = new Map()
+
+const getStyles = (breakpoint) => {
+  if (!cache.has(breakpoint)) cache.set(breakpoint, buildStyles(breakpoint))
+  return cache.get(breakpoint)
+}
+
+const buildStyles = (breakpoint) => {
+  const stacked = breakpoint === 'phone'
+
+  return {
+    mainContainer: {
+      display: 'flex',
+      width: '100%',
+      height: '100%',
+      boxSizing: 'border-box',
+      flexDirection: stacked ? 'column' : 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingLeft: stacked ? '20px' : '32px',
+      paddingRight: stacked ? '20px' : 0,
+      paddingTop: stacked ? '20px' : 0,
+      paddingBottom: stacked ? '20px' : 0,
+      gap: stacked ? '16px' : '32px',
+    },
+    image: {
+      // Desktop keeps the photo at its natural size, exactly as before; the
+      // smaller layouts cap it against the box instead.
+      ...(breakpoint === 'desktop'
+        ? null
+        : { maxHeight: stacked ? '30%' : '80%', maxWidth: stacked ? '50%' : '35%', objectFit: 'contain' }),
+    },
+    headings: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    textContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: stacked ? '16px' : '48px',
+      justifyContent: 'center',
+      width: '100%',
+      paddingRight: stacked ? 0 : '32px',
+    },
+  }
+}
 
 export default About

@@ -142,63 +142,96 @@ const TestGrid = () => {
     return () => observer.disconnect()
   }, [cells])
 
-  const gridStyle = {
-    display: 'grid',
-    gridTemplateColumns: `repeat(${cols}, ${unit}px)`,
-    gridTemplateRows: `repeat(${totalRows}, ${unit}px)`,
-    gap: `${LINE_WIDTH}px`,
-  }
+  // Both styles are memoised so their object identity survives a re-render.
+  // The page div is the scroll container: React skips the style diff
+  // entirely when the object is the same reference, so nothing can touch the
+  // scroller's inline style while a snap animation is running.
+  const pageStyle = useMemo(
+    () => ({ ...getPageStyle(breakpoint), scrollSnapType: snapping ? 'y mandatory' : 'none' }),
+    [breakpoint, snapping],
+  )
+
+  const gridStyle = useMemo(
+    () => ({
+      display: 'grid',
+      gridTemplateColumns: `repeat(${cols}, ${unit}px)`,
+      gridTemplateRows: `repeat(${totalRows}, ${unit}px)`,
+      gap: `${LINE_WIDTH}px`,
+    }),
+    [cols, unit, totalRows],
+  )
+
+  // Everything except the nav buttons, rendered once per layout rather than
+  // once per render. Scrolling changes activeSection, and without this every
+  // one of the ~300 grid cells (and all nine card components inside them)
+  // would be re-rendered and reconciled each time the active section
+  // changed - i.e. exactly when a snap animation is in flight, which is what
+  // made it stutter at the section boundaries. Nav cells render as null here
+  // to keep the keys lined up with `cells`, and are rendered below instead.
+  const staticCells = useMemo(
+    () =>
+      cells.map((cell, i) => {
+        if (cell.type === 'nav') return null
+        if (cell.type === 'card') {
+          const { component: Component = ContentCard, type, ...cellProps } = cell
+          const { col, row, colSpan, rowSpan } = cellProps
+          return (
+            // zIndex lifts the card above the decorative squares - they're
+            // grid items on the same grid, and squares are added after
+            // cards in `cells` (see addSectionBody), so without this a
+            // square's outline paints over any content (e.g. a mockup
+            // image) a card intentionally overflows past its own edge.
+            <div key={i} style={{ ...CARD_SHELL_STYLE, ...gridPlacement(col, row, colSpan, rowSpan), zIndex: 1 }}>
+              <Component {...cellProps} breakpoint={breakpoint} />
+            </div>
+          )
+        }
+        if (cell.type === 'sentinel') {
+          return (
+            <div
+              key={i}
+              data-section-sentinel
+              data-section-index={cell.sectionIndex}
+              style={{
+                ...gridPlacement(cell.col, cell.row, cell.colSpan, cell.rowSpan),
+                pointerEvents: 'none',
+                // Doubles as the section's scroll-snap target on desktop:
+                // 'start' aligns its top edge with the scroll container's
+                // top, matching scrollToSection's own math.
+                //
+                // No scroll-snap-stop: 'always' here. It forced the scroller
+                // to come to rest at every single section, and while that
+                // snap animation runs Chrome swallows further wheel input -
+                // so a second flick during the animation did nothing and the
+                // page felt like it was ignoring every other scroll. Without
+                // it, a firm gesture can carry across more than one section
+                // and still lands on a section boundary, because the snap
+                // type below is still 'mandatory'.
+                ...(snapping ? { scrollSnapAlign: 'start' } : null),
+              }}
+            />
+          )
+        }
+        return <Square key={i} {...cell} />
+      }),
+    [cells, snapping, breakpoint],
+  )
 
   return (
-    <div ref={pageRef} style={{ ...getPageStyle(breakpoint), scrollSnapType: snapping ? 'y mandatory' : 'none' }}>
+    <div ref={pageRef} style={pageStyle}>
       <div style={gridStyle}>
-        {cells.map((cell, i) => {
-          if (cell.type === 'nav') {
-            return (
-              <NavBox
-                key={i}
-                {...cell}
-                breakpoint={breakpoint}
-                active={cell.sectionIndex === activeSection}
-                onClick={() => scrollToSection(cell.sectionIndex)}
-              />
-            )
-          }
-          if (cell.type === 'card') {
-            const { component: Component = ContentCard, type, ...cellProps } = cell
-            const { col, row, colSpan, rowSpan } = cellProps
-            return (
-              // zIndex lifts the card above the decorative squares - they're
-              // grid items on the same grid, and squares are added after
-              // cards in `cells` (see addSectionBody), so without this a
-              // square's outline paints over any content (e.g. a mockup
-              // image) a card intentionally overflows past its own edge.
-              <div key={i} style={{ ...CARD_SHELL_STYLE, ...gridPlacement(col, row, colSpan, rowSpan), zIndex: 1 }}>
-                <Component {...cellProps} breakpoint={breakpoint} />
-              </div>
-            )
-          }
-          if (cell.type === 'sentinel') {
-            return (
-              <div
-                key={i}
-                data-section-sentinel
-                data-section-index={cell.sectionIndex}
-                style={{
-                  ...gridPlacement(cell.col, cell.row, cell.colSpan, cell.rowSpan),
-                  pointerEvents: 'none',
-                  // Doubles as the section's scroll-snap target on desktop:
-                  // 'start' aligns its top edge with the scroll container's
-                  // top (matching scrollToSection's own math), and 'always'
-                  // stops a fast fling here instead of letting it sail past
-                  // to a farther section - i.e. one section per gesture.
-                  ...(snapping ? { scrollSnapAlign: 'start', scrollSnapStop: 'always' } : null),
-                }}
-              />
-            )
-          }
-          return <Square key={i} {...cell} />
-        })}
+        {staticCells}
+        {cells.map((cell, i) =>
+          cell.type === 'nav' ? (
+            <NavBox
+              key={i}
+              {...cell}
+              breakpoint={breakpoint}
+              active={cell.sectionIndex === activeSection}
+              onClick={() => scrollToSection(cell.sectionIndex)}
+            />
+          ) : null,
+        )}
       </div>
     </div>
   )

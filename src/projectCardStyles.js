@@ -15,7 +15,23 @@
 //     can't crowd out the title and button beneath it.
 // The lifted-image pose is desktop-only: it needs room above the card, and
 // stacked cards have another card directly above them.
+// Built once per (breakpoint, imageWidth, lift) combination and reused from
+// then on. These used to be plain module-level constants, and components
+// relied on that without saying so: passing React the *same* style object
+// again lets it skip diffing that element's style entirely. Rebuilding them
+// on every render meant every card re-diffed every style property whenever
+// the page re-rendered - including on each scroll, when the active nav
+// section changes mid snap-animation. There are six combinations in all, so
+// the cache never grows.
+const cache = new Map()
+
 export const getProjectCardStyles = (breakpoint, { imageWidth = '95%', lift = false } = {}) => {
+  const key = `${breakpoint}|${imageWidth}|${lift}`
+  if (!cache.has(key)) cache.set(key, buildProjectCardStyles(breakpoint, imageWidth, lift))
+  return cache.get(key)
+}
+
+const buildProjectCardStyles = (breakpoint, imageWidth, lift) => {
   const button = {
     backgroundColor: '#FFAA00',
     padding: breakpoint === 'phone' ? '10px 20px' : '16px 32px',
