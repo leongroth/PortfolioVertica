@@ -1,28 +1,29 @@
 export const LINE_WIDTH = 1
 
-// Responsive box size: grid squares/cards render at UNIT_LARGE by default,
-// shrink to UNIT_MEDIUM at or below MEDIUM_MAX_WIDTH, and to UNIT_SMALL
-// below SMALL_MAX_WIDTH - so a box that spans, say, 14 columns stays a
-// reasonable size on small screens instead of just being 14*100px wide
-// regardless of the viewport.
-export const UNIT_LARGE = 100
-export const UNIT_MEDIUM = 100
-export const UNIT_SMALL = 100
-export const MEDIUM_MAX_WIDTH = 1400
-export const SMALL_MAX_WIDTH = 800
+// The three layouts the site is built for. Everything responsive - type
+// sizes, image sizes, how many grid units a content box spans, whether
+// there's a nav bar at all - keys off one of these three names rather than
+// off raw pixel widths, so a component never has to repeat the thresholds.
+//
+// Desktop starts at 1400 because that's the width the original layout was
+// designed and tuned for; 768-1399 (portrait and landscape tablets) gets the
+// tablet layout, and anything narrower gets the phone one.
+export const PHONE_MAX_WIDTH = 768
+export const TABLET_MAX_WIDTH = 1400
 
-// Below this width the site shows NotResponsiveNotice instead of the real
-// page (see App.jsx) - the grid itself already scales down via
-// UNIT_SMALL/SMALL_MAX_WIDTH above, but the layout isn't genuinely usable
-// yet at phone widths, so this is a separate, wider cutoff than the visual
-// breakpoints above.
-export const MOBILE_BLOCK_MAX_WIDTH = 1400
-
-export const getUnitSize = (viewportWidth) => {
-  if (viewportWidth < SMALL_MAX_WIDTH) return UNIT_SMALL
-  if (viewportWidth <= MEDIUM_MAX_WIDTH) return UNIT_MEDIUM
-  return UNIT_LARGE
+export const getBreakpoint = (viewportWidth) => {
+  if (viewportWidth < PHONE_MAX_WIDTH) return 'phone'
+  if (viewportWidth < TABLET_MAX_WIDTH) return 'tablet'
+  return 'desktop'
 }
+
+// Grid squares stay 100px on every breakpoint - the grid is the background
+// pattern, not the layout, so it doesn't need to scale; what changes with
+// screen size is how many units a piece of content spans (see sections.js).
+// Kept per-breakpoint anyway so there's one obvious place to change it.
+export const UNIT_SIZES = { desktop: 100, tablet: 100, phone: 100 }
+
+export const getUnitSize = (viewportWidth) => UNIT_SIZES[getBreakpoint(viewportWidth)]
 
 // Distance between grid lines at the given viewport width (box size + the
 // 1px gap/line between boxes).
@@ -33,38 +34,34 @@ export const LINE_COLOR = '#DDDDDD'
 export const BG_COLOR = '#F8F8F8'
 export const BOX_SHADOW = '2px 2px 20px rgba(0, 0, 0, 0.2)'
 
-export const gridPlacement = (col, row, colSpan, rowSpan) => ({
-  gridColumn: `${col + 1} / span ${colSpan}`,
-  gridRow: `${row + 1} / span ${rowSpan}`,
-})
-
-// Shared top-level page wrapper - full-viewport, centers its grid (which is
-// usually a bit wider than the screen since cols is rounded up) so the nav
-// row centers on the real screen too, and reserves a symmetric scrollbar
-// gutter so that centering isn't thrown off by the scrollbar itself. Used by
-// every page (TestGrid, ContentPage, ...) so they all frame their grid the
-// same way.
+// Shared top-level page wrapper - full-viewport, centers its grid and
+// reserves a symmetric scrollbar gutter so that centering isn't thrown off
+// by the scrollbar itself. Used by every page (TestGrid, ContentPage, ...)
+// so they all frame their grid the same way.
 //
-// scrollSnapType is native CSS scroll-snap paging (see TestGrid's per-section
-// sentinels, which carry the matching scroll-snap-align) rather than a
-// hand-rolled wheel-event interceptor - the browser's own scroll engine
-// handles mouse, trackpad momentum and touch input correctly per-platform,
-// which a JS wheel listener can't reliably replicate (WebKit in particular
-// won't let preventDefault cancel a wheel event once it's in a trackpad's
-// momentum phase). Pages without snap targets (e.g. ContentPage) are
-// unaffected - mandatory snapping is a no-op with nothing to snap to.
+// On desktop the grid is a bit wider than the screen (see getGridDimensions,
+// which rounds the column count up there) and bleeds off both edges evenly;
+// on tablet and phone it's rounded down instead, so it sits fully on screen
+// and this just centers it.
+//
+// Scroll snapping isn't set here but by TestGrid, the only page with snap
+// targets to align to - see its scrollSnapType.
 export const PAGE_STYLE = {
   width: '100vw',
   height: '100vh',
   overflowY: 'auto',
   overflowX: 'hidden',
   scrollbarGutter: 'stable both-edges',
-  scrollSnapType: 'y mandatory',
   backgroundColor: BG_COLOR,
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'flex-start',
 }
+
+export const gridPlacement = (col, row, colSpan, rowSpan) => ({
+  gridColumn: `${col + 1} / span ${colSpan}`,
+  gridRow: `${row + 1} / span ${rowSpan}`,
+})
 
 // Shared "shell" for a content box (default ContentCard, or a custom
 // component) - background, border, rounded corners and the drop shadow all

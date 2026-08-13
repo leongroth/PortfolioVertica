@@ -2,15 +2,16 @@ import React from 'react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ACESDesign from './assets/Icons/Pictures/ACESDesign.png'
+import { getProjectCardStyles } from './projectCardStyles'
 import { TYPE } from './typography'
 
 // sectionIndex is handed to every card by TestGrid and passed along in
-// router state so /aces' back button knows which section to return to.
-const ACESCard = ({ sectionIndex }) => {
-
-    const [hover, setHover] = useState(styles.btn)
+// router state so /aces' back button knows which section to return to;
+// breakpoint comes from there too and picks the card's layout.
+const ACESCard = ({ sectionIndex, breakpoint }) => {
+    const styles = getProjectCardStyles(breakpoint)
+    const [hovered, setHovered] = useState(false)
     const navigate = useNavigate()
-
 
   return (
     <div style={styles.mainContainer}>
@@ -20,55 +21,12 @@ const ACESCard = ({ sectionIndex }) => {
             <h2 style={{...TYPE.h2, margin: 0}}>ACES</h2>
             <h6 style={{...TYPE.h6, margin: 0}}>Powered by Machine Learning</h6>
         </div>
-        <button style={hover} onMouseEnter={() => {setHover(styles.hoverBtn)}} onMouseLeave={() => {setHover(styles.btn)}} onClick={() => navigate('/aces', { state: { sectionIndex } })}>
+        <button style={hovered ? styles.hoverBtn : styles.btn} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onClick={() => navigate('/aces', { state: { sectionIndex } })}>
             Read more
         </button>
       </div>
     </div>
   )
-}
-
-const styles = {
-    mainContainer: {
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        width: '100%',
-        height: '100%',
-        overflow: 'visible',
-        alignItems: 'center',
-        paddingTop: '24px',
-        paddingBottom: '24px',
-    },
-    image: {
-        width: '95%',
-    },
-    container: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
-        alignItems: 'center'
-    },
-    containterTwo: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-    },
-    btn: {
-        backgroundColor: '#FFAA00',
-        padding: '16px 32px',
-        width: 'fit-content',
-        border: 'none',
-        borderRadius: '16px',
-    },
-    hoverBtn: {
-        backgroundColor: '#DE9400',
-        padding: '16px 32px',
-        width: 'fit-content',
-        border: 'none',
-        borderRadius: '16px',
-    },
-
 }
 
 export default ACESCard

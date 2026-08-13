@@ -36,7 +36,7 @@ const styles = {
   cardTitle: {
     ...TYPE.h2,
     margin: 0,
-    fontSize: 20, // kept compact for the card's small footprint
+    fontSize: 'var(--type-h5)', // kept compact for the card's small footprint
     color: '#111111',
   },
   cardText: {

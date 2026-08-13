@@ -1,7 +1,14 @@
 import React from 'react'
 import FigmaMockup from './assets/Icons/Pictures/FigmaMockup.svg'
 
-const DesignCard = () => {
+// On desktop the text is laid over the top of the Figma mockup, which fills
+// the whole card. That only works while the card is big: below desktop the
+// mockup is a fraction of the size and the text over it would be unreadable,
+// so the two are stacked in normal flow instead - mockup first, words under
+// it.
+const DesignCard = ({ breakpoint }) => {
+  const styles = breakpoint === 'desktop' ? overlayStyles : stackedStyles
+
   return (
     <div style={styles.container}>
         <img src={FigmaMockup} style={styles.image} />
@@ -15,7 +22,7 @@ I have partaken in the design process of each of the projects i have shared on t
   )
 }
 
-const styles = {
+const overlayStyles = {
     container: {
         position: 'relative',
         width: '100%',
@@ -39,6 +46,38 @@ const styles = {
         flexDirection: 'column',
         alignItems: 'center',
         gap: '16px',
+        textAlign: 'center',
+    },
+    heading: {
+        margin: 0,
+    },
+    paragraph: {
+        margin: 0,
+    },
+}
+
+const stackedStyles = {
+    container: {
+        width: '100%',
+        height: '100%',
+        boxSizing: 'border-box',
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '20px',
+    },
+    image: {
+        width: '100%',
+        maxHeight: '45%',
+        objectFit: 'contain',
+    },
+    textContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '12px',
         textAlign: 'center',
     },
     heading: {

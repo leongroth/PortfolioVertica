@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { LINE_WIDTH, PAGE_STYLE, CARD_SHELL_STYLE, gridPlacement } from './gridConstants'
-import { useGridDimensions, createMatrix, markOccupied, fillDecorativeSquares } from './gridLayout'
+import { useGridDimensions, createMatrix, markOccupied, fillDecorativeSquares, resolveColSpan } from './gridLayout'
 import { assignIcons, assignStrings } from './icons'
 import BackButton from './BackButton'
 import Square from './Square'
@@ -18,7 +18,7 @@ const CONTENT_WIDTH_RATIO = 0.75
 // as long as you like and the page simply scrolls, with the decorative
 // squares down either side growing with it.
 const ContentPage = ({ children }) => {
-  const { cols, rows, unit } = useGridDimensions()
+  const { cols, rows, unit, breakpoint } = useGridDimensions()
   const pitch = unit + LINE_WIDTH
   const contentRef = useRef(null)
 
@@ -55,12 +55,25 @@ const ContentPage = ({ children }) => {
     return () => observer.disconnect()
   }, [pitch, minContentHeight])
 
-  // Parity-matched to cols so the box sits exactly centered and is
-  // therefore its own mirror image - required for the decorative squares
-  // around it to mirror correctly (see gridLayout's isMatrixSymmetric).
-  let contentColSpan = Math.round(cols * CONTENT_WIDTH_RATIO)
-  contentColSpan = Math.max(2, Math.min(cols - 2, contentColSpan))
-  if ((cols - contentColSpan) % 2 !== 0) contentColSpan -= 1
+  // Three quarters of the width on desktop, where there's room to spare for
+  // decorative squares down each side; one column of squares either side on
+  // a tablet; the whole width on a phone, which has 3-7 columns in total and
+  // no width to give away.
+  //
+  // Parity-matched to cols so the box sits exactly centered and is therefore
+  // its own mirror image - required for the decorative squares around it to
+  // mirror correctly (see gridLayout's isMatrixSymmetric). 'full' and 'wide'
+  // are already parity-safe, being cols and cols-2.
+  let contentColSpan
+  if (breakpoint === 'phone') {
+    contentColSpan = resolveColSpan('full', cols)
+  } else if (breakpoint === 'tablet') {
+    contentColSpan = resolveColSpan('wide', cols)
+  } else {
+    contentColSpan = Math.round(cols * CONTENT_WIDTH_RATIO)
+    contentColSpan = Math.max(2, Math.min(cols - 2, contentColSpan))
+    if ((cols - contentColSpan) % 2 !== 0) contentColSpan -= 1
+  }
   const contentCol = (cols - contentColSpan) / 2
 
   // The box spans every row, so the grid is exactly as tall as the box and
@@ -92,7 +105,7 @@ const ContentPage = ({ children }) => {
 
   return (
     <div style={PAGE_STYLE}>
-      <BackButton />
+      <BackButton breakpoint={breakpoint} />
       <div style={gridStyle}>
         {squares.map((cell, i) => (
           <Square key={`square-${i}`} {...cell} />

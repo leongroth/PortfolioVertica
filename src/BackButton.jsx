@@ -14,12 +14,18 @@ import { TYPE } from './typography'
 // index back to the main page and you land on the section you left from
 // rather than at the very top. Without it (e.g. someone opened /aces
 // directly) it just goes to the top of the main page.
-const BackButton = ({ label = 'Back' }) => {
+const BackButton = ({ label = 'Back', breakpoint = 'desktop' }) => {
   const location = useLocation()
   const navigate = useNavigate()
   const [hover, setHover] = useState(false)
 
   const sectionIndex = location.state?.sectionIndex
+
+  // On desktop and tablet the button sits in the empty margin beside the
+  // content box. A phone's content box is the full width of the grid, so
+  // there is no margin to sit in and the button drops its text label,
+  // shrinking to a chevron that covers as little of the box as possible.
+  const compact = breakpoint === 'phone'
 
   const handleClick = () => {
     navigate('/', { state: sectionIndex !== undefined ? { sectionIndex } : null })
@@ -32,7 +38,11 @@ const BackButton = ({ label = 'Back' }) => {
       onClick={handleClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{ ...styles.button, ...(hover ? styles.buttonHover : null) }}
+      style={{
+        ...styles.button,
+        ...(compact ? styles.buttonCompact : null),
+        ...(hover ? styles.buttonHover : null),
+      }}
     >
       <svg
         width="18"
@@ -47,7 +57,7 @@ const BackButton = ({ label = 'Back' }) => {
       >
         <path d="M15 18 L9 12 L15 6" />
       </svg>
-      <span>{label}</span>
+      {!compact && <span>{label}</span>}
     </button>
   )
 }
@@ -71,6 +81,17 @@ const styles = {
     cursor: 'pointer',
     ...TYPE.h6,
     color: '#333333',
+  },
+  buttonCompact: {
+    top: 12,
+    left: 12,
+    // Square, and big enough to stay a comfortable tap target without the
+    // label.
+    width: 44,
+    height: 44,
+    padding: 0,
+    justifyContent: 'center',
+    gap: 0,
   },
   buttonHover: {
     backgroundColor: '#F8F8F8',

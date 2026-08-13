@@ -2,11 +2,17 @@ import React from 'react'
 import Leon from './assets/Icons/Pictures/Leon.png'
 import { TYPE } from './typography'
 
+// Photo beside the text on desktop and tablet, stacked above it on a phone,
+// where a 3-column box has no room for two columns of anything. The photo is
+// left at its natural size on desktop (which is what the layout was drawn
+// around) and constrained by the box everywhere else.
+const About = ({ breakpoint }) => {
+  const stacked = breakpoint === 'phone'
+  const styles = getStyles(breakpoint, stacked)
 
-const About = () => {
   return (
     <div style={styles.mainContainer}>
-      <img src={Leon} />
+      <img src={Leon} style={styles.image} />
       <div style={styles.textContainer}>
         <div style={styles.headings}>
           <h1 style={{...TYPE.h1, margin: 0,}}>I'm Leon Groth</h1>
@@ -18,32 +24,43 @@ const About = () => {
   )
 }
 
-const styles = {
+const getStyles = (breakpoint, stacked) => ({
   mainContainer: {
-    display: 'Flex',
+    display: 'flex',
     width: '100%',
     height: '100%',
-    flexDirection: 'row',
+    boxSizing: 'border-box',
+    flexDirection: stacked ? 'column' : 'row',
     alignItems: 'center',
-    paddingLeft: '32px',
-    gap: '32px'
+    justifyContent: 'center',
+    paddingLeft: stacked ? '20px' : '32px',
+    paddingRight: stacked ? '20px' : 0,
+    paddingTop: stacked ? '20px' : 0,
+    paddingBottom: stacked ? '20px' : 0,
+    gap: stacked ? '16px' : '32px',
+  },
+  image: {
+    // Desktop keeps the photo at its natural size, exactly as before; the
+    // smaller layouts cap it against the box instead.
+    ...(breakpoint === 'desktop'
+      ? null
+      : { maxHeight: stacked ? '30%' : '80%', maxWidth: stacked ? '50%' : '35%', objectFit: 'contain' }),
   },
   headings: {
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   textContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '48px',
-    width: '50%',
+    gap: stacked ? '16px' : '48px',
     justifyContent: 'center',
     width: '100%',
-    paddingRight: '32px'
-  }
-}
+    paddingRight: stacked ? 0 : '32px',
+  },
+})
 
 export default About

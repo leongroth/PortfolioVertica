@@ -13,3 +13,120 @@ html,
 body {
   font-family: 'Satoshi', sans-serif;
 }
+
+/* ---------------------------------------------------------------------------
+   Responsive scale
+   ---------------------------------------------------------------------------
+   One set of variables for every size that should change with screen size:
+   the type scale (mirrored by TYPE in typography.js, which points at these
+   same variables), the standalone icon sizes, and the standard spacing step
+   components use between blocks.
+
+   The three tiers match getBreakpoint() in gridConstants.js exactly - keep
+   the media query widths and those constants in sync. Desktop values are the
+   defaults here and the media queries only narrow them, so anything that
+   isn't listed simply stays at its desktop size.
+
+   Grid squares deliberately do NOT scale - they stay 100x100 everywhere.
+   What changes per breakpoint is how many of them a piece of content spans,
+   which is set in sections.js, not here.
+--------------------------------------------------------------------------- */
+:root {
+  --type-h1: 48px;
+  --type-h2: 40px;
+  --type-h3: 33px;
+  --type-h4: 28px;
+  --type-h5: 23px;
+  --type-h6: 19px;
+  --type-body: 16px;
+  --type-body-sm: 13px;
+  --type-caption: 11px;
+
+  /* Icons that sit on their own rather than inside a sized box - the skill
+     icon rows on the project pages. 54px is the artwork's own size, so
+     desktop renders them exactly as it did before they were sized at all. */
+  --icon-size: 54px;
+
+  /* Standard gap between the big blocks inside a content box. */
+  --block-gap: 64px;
+}
+
+/* Tablet: 768px - 1399px */
+@media (max-width: 1399px) {
+  :root {
+    --type-h1: 38px;
+    --type-h2: 32px;
+    --type-h3: 27px;
+    --type-h4: 22px;
+    --type-h5: 19px;
+    --type-h6: 16px;
+    --type-body: 15px;
+    --type-body-sm: 13px;
+    --type-caption: 11px;
+
+    --icon-size: 42px;
+    --block-gap: 40px;
+  }
+}
+
+/* Phone: below 768px */
+@media (max-width: 767px) {
+  :root {
+    --type-h1: 30px;
+    --type-h2: 25px;
+    --type-h3: 22px;
+    --type-h4: 18px;
+    --type-h5: 16px;
+    --type-h6: 14px;
+    --type-body: 14px;
+    --type-body-sm: 12px;
+    --type-caption: 10px;
+
+    --icon-size: 32px;
+    --block-gap: 24px;
+  }
+}
+
+/* Bare heading/paragraph tags scale too - several components write plain
+   <h1>/<h4>/<p> without spreading TYPE, and browser defaults are fixed
+   pixel sizes that would ignore the scale above. */
+h1 {
+  font-size: var(--type-h1);
+  font-weight: 700;
+}
+
+h2 {
+  font-size: var(--type-h2);
+  font-weight: 700;
+}
+
+h3 {
+  font-size: var(--type-h3);
+  font-weight: 700;
+}
+
+h4 {
+  font-size: var(--type-h4);
+  font-weight: 700;
+}
+
+h5 {
+  font-size: var(--type-h5);
+  font-weight: 500;
+}
+
+h6 {
+  font-size: var(--type-h6);
+  font-weight: 500;
+}
+
+p {
+  font-size: var(--type-body);
+}
+
+/* No image may ever be wider than what's holding it - the cards and project
+   pages size their images in percentages, but this is the backstop that
+   keeps a stray full-resolution asset from pushing a phone layout sideways. */
+img {
+  max-width: 100%;
+}
