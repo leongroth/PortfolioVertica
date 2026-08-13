@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { LINE_WIDTH, PAGE_STYLE, CARD_SHELL_STYLE, gridPlacement } from './gridConstants'
+import { LINE_WIDTH, getPageStyle, CARD_SHELL_STYLE, gridPlacement } from './gridConstants'
 import { useGridDimensions, createMatrix, markOccupied, fillDecorativeSquares, resolveColSpan } from './gridLayout'
 import { assignIcons, assignStrings } from './icons'
 import BackButton from './BackButton'
@@ -104,7 +104,7 @@ const ContentPage = ({ children }) => {
   }
 
   return (
-    <div style={PAGE_STYLE}>
+    <div style={getPageStyle(breakpoint)}>
       <BackButton breakpoint={breakpoint} />
       <div style={gridStyle}>
         {squares.map((cell, i) => (

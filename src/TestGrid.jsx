@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { LINE_WIDTH, PAGE_STYLE, CARD_SHELL_STYLE, gridPlacement } from './gridConstants'
+import { LINE_WIDTH, getPageStyle, CARD_SHELL_STYLE, gridPlacement } from './gridConstants'
 import {
   getNavHeightUnits,
   useGridDimensions,
@@ -150,7 +150,7 @@ const TestGrid = () => {
   }
 
   return (
-    <div ref={pageRef} style={{ ...PAGE_STYLE, scrollSnapType: snapping ? 'y mandatory' : 'none' }}>
+    <div ref={pageRef} style={{ ...getPageStyle(breakpoint), scrollSnapType: snapping ? 'y mandatory' : 'none' }}>
       <div style={gridStyle}>
         {cells.map((cell, i) => {
           if (cell.type === 'nav') {

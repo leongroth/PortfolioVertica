@@ -17,10 +17,18 @@ export const getBreakpoint = (viewportWidth) => {
   return 'desktop'
 }
 
-// Grid squares stay 100px on every breakpoint - the grid is the background
+// Grid squares are 100px on desktop and tablet - the grid is the background
 // pattern, not the layout, so it doesn't need to scale; what changes with
 // screen size is how many units a piece of content spans (see sections.js).
-// Kept per-breakpoint anyway so there's one obvious place to change it.
+//
+// A phone is the exception. There, 100px squares leave a stripe of empty
+// background down each side (a 390px screen fits three of them and a 44px
+// margin either side), and content that spans the full grid still doesn't
+// reach the edge of the screen. So the phone size below is only a target:
+// getGridDimensions picks the column count nearest to it and then stretches
+// the square a few pixels either way so the columns come out exactly the
+// width of the screen. Squares stay square, just 95-107px depending on the
+// handset.
 export const UNIT_SIZES = { desktop: 100, tablet: 100, phone: 100 }
 
 export const getUnitSize = (viewportWidth) => UNIT_SIZES[getBreakpoint(viewportWidth)]
@@ -41,8 +49,8 @@ export const BOX_SHADOW = '2px 2px 20px rgba(0, 0, 0, 0.2)'
 //
 // On desktop the grid is a bit wider than the screen (see getGridDimensions,
 // which rounds the column count up there) and bleeds off both edges evenly;
-// on tablet and phone it's rounded down instead, so it sits fully on screen
-// and this just centers it.
+// on tablet it's rounded down instead, so it sits fully on screen and this
+// just centers it.
 //
 // Scroll snapping isn't set here but by TestGrid, the only page with snap
 // targets to align to - see its scrollSnapType.
@@ -57,6 +65,15 @@ export const PAGE_STYLE = {
   justifyContent: 'center',
   alignItems: 'flex-start',
 }
+
+// The page wrapper for one breakpoint. Phones drop the reserved scrollbar
+// gutter: their grid is sized to the exact width of the screen, so a pair of
+// reserved gutters would squeeze it and leave the stripe of background down
+// each side that sizing it that way is meant to remove. Phone scrollbars
+// overlay the content rather than taking up space, so there's nothing to
+// reserve room for anyway.
+export const getPageStyle = (breakpoint) =>
+  breakpoint === 'phone' ? { ...PAGE_STYLE, scrollbarGutter: 'auto' } : PAGE_STYLE
 
 export const gridPlacement = (col, row, colSpan, rowSpan) => ({
   gridColumn: `${col + 1} / span ${colSpan}`,

@@ -27,7 +27,9 @@ body {
    defaults here and the media queries only narrow them, so anything that
    isn't listed simply stays at its desktop size.
 
-   Grid squares deliberately do NOT scale - they stay 100x100 everywhere.
+   Grid squares deliberately do NOT scale with the type: they stay 100x100 on
+   desktop and tablet, and on a phone they flex by a few pixels only so the
+   columns add up to the exact width of the screen (see getGridDimensions).
    What changes per breakpoint is how many of them a piece of content spans,
    which is set in sections.js, not here.
 --------------------------------------------------------------------------- */

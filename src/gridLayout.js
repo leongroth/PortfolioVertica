@@ -25,32 +25,43 @@ export const getNavHeightUnits = (breakpoint) => (getNavBoxWidthUnits(breakpoint
 export const getGridDimensions = () => {
   const width = window.innerWidth
   const breakpoint = getBreakpoint(width)
-  const unit = getUnitSize(width)
-  const pitch = unit + LINE_WIDTH
   const navUnits = getNavTotalWidthUnits(breakpoint)
 
-  // Desktop rounds the column count up, so the grid is slightly wider than
-  // the screen and bleeds off both edges - that's the intended look there,
-  // and at 1400px+ the overhang is at most one 100px square.
-  //
-  // Tablet and phone round down instead: a whole extra square is a much
-  // bigger fraction of a small screen, and PAGE_STYLE hides the horizontal
-  // overflow, so rounding up there would quietly clip real content off both
-  // sides. Rounding down keeps the whole grid - and everything in it - on
-  // screen, with a small even margin either side.
+  let unit = getUnitSize(width)
+  let pitch = unit + LINE_WIDTH
   let cols
+
   if (breakpoint === 'desktop') {
+    // Desktop rounds the column count up, so the grid is slightly wider than
+    // the screen and bleeds off both edges - that's the intended look there,
+    // and at 1400px+ the overhang is at most one 100px square.
     cols = Math.ceil(width / pitch)
     // Keep (cols - navUnits) even so buildNavRowCells' floor-based centering
     // lands the nav block exactly in the middle of the grid's own columns,
     // with equal margin units on both sides, instead of being off by one
     // whole unit on whichever viewport widths make it odd.
     if ((cols - navUnits) % 2 !== 0) cols += 1
-  } else {
+  } else if (breakpoint === 'tablet') {
+    // A whole extra square is a much bigger fraction of a tablet screen, and
+    // PAGE_STYLE hides the horizontal overflow, so rounding up here would
+    // quietly clip real content off both sides. Rounding down keeps the
+    // whole grid - and everything in it - on screen, with a small even
+    // margin either side.
     cols = Math.max(2, Math.floor(width / pitch))
     // Same parity rule, but corrected downwards - going up would push the
     // grid back off the edge of the screen, which is what we just avoided.
     if (navUnits > 0 && (cols - navUnits) % 2 !== 0) cols = Math.max(2, cols - 1)
+  } else {
+    // Phones fit the grid to the screen exactly instead of rounding either
+    // way: take whichever column count comes closest to the 100px target,
+    // then divide the screen by it, so a box spanning the full grid spans
+    // the full width of the phone with nothing left over at the sides.
+    // clientWidth rather than innerWidth so a narrow desktop window's
+    // scrollbar isn't counted as usable space.
+    const available = document.documentElement.clientWidth || width
+    cols = Math.max(2, Math.round(available / pitch))
+    unit = (available - (cols - 1) * LINE_WIDTH) / cols
+    pitch = unit + LINE_WIDTH
   }
 
   return {
