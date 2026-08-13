@@ -3,42 +3,33 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 // How the page moves from one section to the next on desktop.
 //
 // This animates the scroll position itself rather than using CSS
-// scroll-snap, because CSS gives no control over either of the two things
-// this needs: how long the snap takes (the browser's own is around 300ms and
-// fixed) and how it eases (a plain decelerate - it can't overshoot). So the
+// scroll-snap, because CSS gives no control over how long the snap takes -
+// the browser's own is around 300ms, with no property to change it. So the
 // scroll container's scroll-snap-type is off wherever this is enabled; the
 // two can't both drive the scroller, since the browser re-snaps after every
-// programmatic scroll and would flatten the overshoot on every frame.
+// programmatic scroll.
 //
-// The three numbers worth touching are right here:
-export const SNAP_DURATION_MS = 600 // roughly half the speed of the browser's own snap
-// How far past the section it swings before settling back. This is the
-// easeOutBack constant, and it's worth knowing what it buys: 1.2 overshoots
-// by about 5% of the distance travelled (~48px on a 909px section), 0.9 by
-// 3%, and the textbook 1.70158 by a full 10%, which on a section this size
-// is nearly a tenth of the screen and reads as a lurch.
-export const SNAP_OVERSHOOT = 1.2 // 0 = no bounce at all
+// The numbers worth touching are right here:
+export const SNAP_DURATION_MS = 900 // roughly a third of the browser's own speed
 const COOLDOWN_MS = 120 // ignore wheel input for this long after landing, so one flick isn't read twice
+const RETARGET_MIN_MS = 250 // shortest gap between two steps when scrolling continuously
 
 const WHEEL_THRESHOLD = 4 // ignore the tiny deltas a trackpad emits at the very start of a gesture
 const SETTLE_MS = 150 // how long the scroller must be still to count as "stopped", without scrollend
 const EDGE_TOLERANCE = 2 // px; closer than this to a section edge counts as already being there
 
-// Standard "back" ease: accelerates out, overshoots the target, settles back
-// onto it. `overshoot` is the classic easeOutBack constant (1.70158 gives a
-// ~10% overrun); the default above is softer than that.
-const easeOutBack = (t, overshoot) => {
-  const c3 = overshoot + 1
-  return 1 + c3 * (t - 1) ** 3 + overshoot * (t - 1) ** 2
-}
+// Eases in and out - slow at both ends, quickest in the middle. Over a
+// distance this long (a whole screen) a curve that only eases out spends its
+// last third barely moving, which reads as sluggish rather than smooth.
+const easeInOutCubic = (t) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2)
 
 const prefersReducedMotion = () =>
   typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 // Drives section-to-section scrolling on `pageRef`:
 //   - a wheel gesture pages to the next/previous section instead of scrolling
-//     freely, and further wheel input during the animation is swallowed
-//     rather than queued up behind it
+//     freely, and scrolling again while it's still moving carries on to the
+//     section after that rather than being dropped
 //   - anything else that moves the scroller (the scrollbar, arrow keys, a
 //     touchscreen) is left alone while it's moving and eased onto the
 //     nearest section once it stops, which is the job CSS mandatory snapping
@@ -50,7 +41,9 @@ const prefersReducedMotion = () =>
 // and paging would fight the reader rather than help them.
 export const useSectionPaging = ({ pageRef, sectionTops, pitch, enabled }) => {
   const frame = useRef(null)
+  const destination = useRef(null)
   const lockedUntil = useRef(0)
+  const lastStepAt = useRef(0)
   const settleTimer = useRef(null)
 
   const tops = useMemo(() => sectionTops.map((row) => row * pitch), [sectionTops, pitch])
@@ -65,8 +58,14 @@ export const useSectionPaging = ({ pageRef, sectionTops, pitch, enabled }) => {
 
       const to = Math.max(0, Math.min(el.scrollHeight - el.clientHeight, top))
       const from = el.scrollTop
+      // Where this animation is headed, so a gesture that arrives mid-flight
+      // can step on from there rather than from wherever the page happens to
+      // have reached.
+      destination.current = to
+
       const land = () => {
         frame.current = null
+        destination.current = null
         el.scrollTop = to
         lockedUntil.current = performance.now() + COOLDOWN_MS
       }
@@ -79,10 +78,7 @@ export const useSectionPaging = ({ pageRef, sectionTops, pitch, enabled }) => {
       const start = performance.now()
       const step = (now) => {
         const t = Math.min(1, (now - start) / SNAP_DURATION_MS)
-        // The overshoot deliberately runs past `to`; at the very top or
-        // bottom of the page the scroller clamps it, so the bounce just
-        // doesn't show there.
-        el.scrollTop = from + (to - from) * easeOutBack(t, SNAP_OVERSHOOT)
+        el.scrollTop = from + (to - from) * easeInOutCubic(t)
         if (t < 1) frame.current = requestAnimationFrame(step)
         else land()
       }
@@ -113,26 +109,39 @@ export const useSectionPaging = ({ pageRef, sectionTops, pitch, enabled }) => {
     const nearestTop = (scrollTop) =>
       tops.reduce((best, top) => (Math.abs(top - scrollTop) < Math.abs(best - scrollTop) ? top : best), tops[0])
 
-    const busy = () => frame.current !== null || performance.now() < lockedUntil.current
-
     const handleWheel = (event) => {
       if (event.ctrlKey) return // pinch-zoom, not a scroll
       if (Math.abs(event.deltaY) < WHEEL_THRESHOLD) return
 
-      // Mid-animation input is dropped, not queued: letting it through is
-      // what made the old snapping feel like it was ignoring every other
-      // gesture, since the queued scroll landed somewhere arbitrary.
-      if (busy()) {
+      const now = performance.now()
+      if (now < lockedUntil.current) {
         event.preventDefault()
         return
       }
 
-      const target = nextTop(el.scrollTop, event.deltaY > 0 ? 1 : -1)
-      // Past the last section (or above the first), leave the browser to it
-      // rather than trapping the gesture.
-      if (target === undefined) return
+      const animating = frame.current !== null
+      // Keep scrolling and the page keeps going, one section at a time,
+      // instead of the animation locking input out for most of a second -
+      // that lockout is what made the old snapping feel like it ignored
+      // every other gesture. The interval is what stops a trackpad's
+      // momentum tail from running away with it.
+      if (animating && now - lastStepAt.current < RETARGET_MIN_MS) {
+        event.preventDefault()
+        return
+      }
+
+      const from = animating ? destination.current : el.scrollTop
+      const target = nextTop(from, event.deltaY > 0 ? 1 : -1)
+
+      // Past the last section (or above the first): let the browser have the
+      // gesture, unless an animation is running and it would fight it.
+      if (target === undefined) {
+        if (animating) event.preventDefault()
+        return
+      }
 
       event.preventDefault()
+      lastStepAt.current = now
       animateTo(target)
     }
 
@@ -140,7 +149,7 @@ export const useSectionPaging = ({ pageRef, sectionTops, pitch, enabled }) => {
     // a touchscreen - scrolls normally and gets eased onto the nearest
     // section once it comes to rest.
     const handleSettled = () => {
-      if (busy()) return
+      if (frame.current !== null || performance.now() < lockedUntil.current) return
       const maxScroll = el.scrollHeight - el.clientHeight
       // Not at the very top or bottom, where the nearest section may be
       // unreachable and pulling at it would just fight the reader.
@@ -169,6 +178,7 @@ export const useSectionPaging = ({ pageRef, sectionTops, pitch, enabled }) => {
       clearTimeout(settleTimer.current)
       if (frame.current) cancelAnimationFrame(frame.current)
       frame.current = null
+      destination.current = null
     }
   }, [pageRef, tops, enabled, animateTo])
 
