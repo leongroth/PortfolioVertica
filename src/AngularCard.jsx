@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import KMDMockup from './assets/Icons/Pictures/KMDMockup.png'
 import { TYPE } from './typography'
 
-const AngularCard = () => {
+const AngularCard = ({ sectionIndex }) => {
 
     const [hover, setHover] = useState(styles.btn)
     const navigate = useNavigate()
@@ -18,7 +18,7 @@ const AngularCard = () => {
             <h2 style={{...TYPE.h2, margin: 0}}>Angular Platform</h2>
             <h6 style={{...TYPE.h6, margin: 0}}>Platform development for KMD</h6>
         </div>
-        <button style={hover} onMouseEnter={() => {setHover(styles.hoverBtn)}} onMouseLeave={() => {setHover(styles.btn)}} onClick={() => navigate('/angular')}>
+        <button style={hover} onMouseEnter={() => {setHover(styles.hoverBtn)}} onMouseLeave={() => {setHover(styles.btn)}} onClick={() => navigate('/angular', { state: { sectionIndex } })}>
             Read more
         </button>
       </div>

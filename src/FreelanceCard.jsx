@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import AppMockup from './assets/Icons/Pictures/AppMockup.png'
 import { TYPE } from './typography'
 
-const FreelanceCard = () => {
+const FreelanceCard = ({ sectionIndex }) => {
 
     const [hover, setHover] = useState(styles.btn)
     const navigate = useNavigate()
@@ -19,7 +19,7 @@ const FreelanceCard = () => {
             <h6 style={{...TYPE.h6, margin: 0}}>Application Design & Development</h6>
         </div>
         
-        <button style={hover} onMouseEnter={() => {setHover(styles.hoverBtn)}} onMouseLeave={() => {setHover(styles.btn)}} onClick={() => navigate('/freelance')}>
+        <button style={hover} onMouseEnter={() => {setHover(styles.hoverBtn)}} onMouseLeave={() => {setHover(styles.btn)}} onClick={() => navigate('/freelance', { state: { sectionIndex } })}>
             Read more
         </button>
       </div>

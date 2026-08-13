@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import ACESDesign from './assets/Icons/Pictures/ACESDesign.png'
 import { TYPE } from './typography'
 
-const ACESCard = () => {
+// sectionIndex is handed to every card by TestGrid and passed along in
+// router state so /aces' back button knows which section to return to.
+const ACESCard = ({ sectionIndex }) => {
 
     const [hover, setHover] = useState(styles.btn)
     const navigate = useNavigate()
@@ -18,7 +20,7 @@ const ACESCard = () => {
             <h2 style={{...TYPE.h2, margin: 0}}>ACES</h2>
             <h6 style={{...TYPE.h6, margin: 0}}>Powered by Machine Learning</h6>
         </div>
-        <button style={hover} onMouseEnter={() => {setHover(styles.hoverBtn)}} onMouseLeave={() => {setHover(styles.btn)}} onClick={() => navigate('/aces')}>
+        <button style={hover} onMouseEnter={() => {setHover(styles.hoverBtn)}} onMouseLeave={() => {setHover(styles.btn)}} onClick={() => navigate('/aces', { state: { sectionIndex } })}>
             Read more
         </button>
       </div>

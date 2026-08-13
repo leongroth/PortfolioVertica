@@ -46,7 +46,11 @@ const TestGrid = () => {
     // never land on the same square.
     const addSectionBody = (sectionIndex, rowOffset, bodyRows) => {
       const { occupied, cells: reservedCells } = getSectionBoxes(cols, bodyRows, SECTIONS[sectionIndex], `sections.js[${sectionIndex}]`)
-      reservedCells.forEach((cell) => all.push({ ...cell, row: cell.row + rowOffset }))
+      // sectionIndex rides along as a prop on every card so a card that
+      // navigates to its own content page can pass it on (see ACESCard) -
+      // that page's BackButton then brings you back to this section rather
+      // than to the top of the page.
+      reservedCells.forEach((cell) => all.push({ ...cell, row: cell.row + rowOffset, sectionIndex }))
       assignStrings(assignIcons(fillDecorativeSquares(cols, bodyRows, occupied))).forEach((cell) =>
         all.push({ ...cell, row: cell.row + rowOffset, type: 'square' }),
       )

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import AXONDesing from './assets/Icons/Pictures/AXONDesign.png'
 import { TYPE } from './typography'
 
-const AXONCard = () => {
+const AXONCard = ({ sectionIndex }) => {
 
     const [hover, setHover] = useState(styles.btn)
     const navigate = useNavigate()
@@ -18,7 +18,7 @@ const AXONCard = () => {
             <h2 style={{...TYPE.h2, margin: 0}}>AXON</h2>
             <h6 style={{...TYPE.h6, margin: 0}}>Accessibility chatbot</h6>
         </div>
-        <button style={hover} onMouseEnter={() => {setHover(styles.hoverBtn)}} onMouseLeave={() => {setHover(styles.btn)}} onClick={() => navigate('/axon')}>
+        <button style={hover} onMouseEnter={() => {setHover(styles.hoverBtn)}} onMouseLeave={() => {setHover(styles.btn)}} onClick={() => navigate('/axon', { state: { sectionIndex } })}>
             Read more
         </button>
       </div>

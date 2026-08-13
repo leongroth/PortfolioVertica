@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TYPE } from './typography'
 
-const ReactCard = () => {
+const ReactCard = ({ sectionIndex }) => {
 
     const [hover, setHover] = useState(styles.btn)
     const navigate = useNavigate()
@@ -19,7 +19,7 @@ const ReactCard = () => {
             <h6 style={{...TYPE.h6, margin: 0}}>Our own Accessibility tool</h6>
         </div>
         
-        <button style={hover} onMouseEnter={() => {setHover(styles.hoverBtn)}} onMouseLeave={() => {setHover(styles.btn)}} onClick={() => navigate('/react')}>
+        <button style={hover} onMouseEnter={() => {setHover(styles.hoverBtn)}} onMouseLeave={() => {setHover(styles.btn)}} onClick={() => navigate('/react', { state: { sectionIndex } })}>
             Read more
         </button>
       </div>
