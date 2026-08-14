@@ -33,7 +33,7 @@ const AngularPlatform = () => {
 
       <div style={{width: '70%', display: 'flex', flexDirection: 'column', gap: '32px', alignItems: 'center'}}>
         <p style={{width: '80%'}}>In order to adhere to KMD’s security guidelines, Claude was never used directly on our work computer. Instead a cloud virtual machine was used for all coding work. This VPS ran on ubuntu, which meant that i had to learn to navigate the linux terminal. </p>
-        <img src={CommandPrompt}/>
+        <img src={CommandPrompt} style={{width: '60%'}}/>
         <p style={{width: '80%'}}>Working with Claude Code in a professional setting taught me a lot about effective prompting, planning and Agentic coding, and has made me a more effective frontend developer.</p>
       </div>
 

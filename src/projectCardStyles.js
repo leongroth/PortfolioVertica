@@ -1,3 +1,5 @@
+import { TYPE } from './typography'
+
 // Shared layout for the five project cards on the main page (Freelance,
 // React/ACES, Angular, AXON, ACES). Each card is a mockup image with a
 // title, a subtitle and a "Read more" button, and each one keeps its own
@@ -32,13 +34,27 @@ export const getProjectCardStyles = (breakpoint, { imageWidth = '95%', lift = fa
 }
 
 const buildProjectCardStyles = (breakpoint, imageWidth, lift) => {
+  const phone = breakpoint === 'phone'
+
   const button = {
     backgroundColor: '#FFAA00',
-    padding: breakpoint === 'phone' ? '10px 20px' : '16px 32px',
+    // Bigger on a phone than it used to be - it's a finger target there, not
+    // a cursor one, and at this padding the button clears 44px tall.
+    padding: phone ? '14px 28px' : '16px 32px',
     width: 'fit-content',
     border: 'none',
     borderRadius: '16px',
-    fontSize: 'var(--type-body)',
+    // A <button> inherits neither font nor colour from the page: left to
+    // itself it picks up the UA's own, which on iOS means a system font and
+    // a tinted (blue/purple-looking) label rather than dark text in Satoshi.
+    // Spelling both out - and turning the native appearance off, which is
+    // what stops iOS restyling the control regardless - keeps it identical
+    // on every device.
+    ...TYPE.body,
+    fontSize: phone ? '16px' : 'var(--type-body)',
+    color: '#333333',
+    WebkitAppearance: 'none',
+    appearance: 'none',
     cursor: 'pointer',
   }
 
