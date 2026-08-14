@@ -2,6 +2,7 @@ import React from 'react'
 import { useBreakpoint } from './gridLayout'
 import { getProjectPageStyles } from './projectPageStyles'
 import KMDMockup from './assets/Icons/Pictures/KMDMockup.png'
+import CommandPrompt from './assets/Icons/Pictures/CommandPrompt.png'
 
 
 import AngularIcon from './assets/Icons/Skills/Angular.svg'
@@ -29,6 +30,13 @@ const AngularPlatform = () => {
 
           The final 6 months of my employment introduced using Claude Code for professional work. Here creating new branches in the codebase became second nature, and more complex features became feasible to implement in the span of my short work weeks.</p>
       </div>
+
+      <div style={{width: '70%', display: 'flex', flexDirection: 'column', gap: '32px', alignItems: 'center'}}>
+        <p style={{width: '80%'}}>In order to adhere to KMD’s security guidelines, Claude was never used directly on our work computer. Instead a cloud virtual machine was used for all coding work. This VPS ran on ubuntu, which meant that i had to learn to navigate the linux terminal. </p>
+        <img src={CommandPrompt}/>
+        <p style={{width: '80%'}}>Working with Claude Code in a professional setting taught me a lot about effective prompting, planning and Agentic coding, and has made me a more effective frontend developer.</p>
+      </div>
+
 
       <div style={styles.tech}>
         <h4>Tech used in development</h4>

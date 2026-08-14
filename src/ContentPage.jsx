@@ -7,6 +7,22 @@ import Square from './Square'
 
 const CONTENT_WIDTH_RATIO = 0.75
 
+// Space above the first block and below the last one. It lives here rather
+// than in each page's own styles so that every content page has exactly the
+// same breathing room whatever it puts inside - a page can't get this wrong
+// by forgetting it or picking its own number. The sizes themselves are in
+// index.css, per breakpoint.
+//
+// The bottom gets --content-buffer on top of that, so scrolling to the end
+// of a long page leaves the last block clear of the bottom of the screen
+// instead of pressed against it.
+const PADDING_TOP = 'var(--content-pad-y)'
+const PADDING_BOTTOM = 'calc(var(--content-pad-y) + var(--content-buffer))'
+// A phone's box is the full width of the screen, so the fixed back button
+// floats over its top-left corner rather than sitting in a margin beside it;
+// the first block starts below the button instead of behind it.
+const PADDING_TOP_PHONE = 'calc(var(--content-pad-y) + 32px)'
+
 // A page with the same grid background as the main page, but no nav bar and
 // no sections: just one large content area (~75% of the width, centered)
 // that renders `children` - drop in whatever component you build for that
@@ -103,6 +119,14 @@ const ContentPage = ({ children }) => {
     gap: `${LINE_WIDTH}px`,
   }
 
+  const contentStyle = {
+    display: 'grid',
+    boxSizing: 'border-box',
+    minHeight: minContentHeight,
+    paddingTop: breakpoint === 'phone' ? PADDING_TOP_PHONE : PADDING_TOP,
+    paddingBottom: PADDING_BOTTOM,
+  }
+
   return (
     <div style={getPageStyle(breakpoint)}>
       <BackButton breakpoint={breakpoint} />
@@ -122,8 +146,12 @@ const ContentPage = ({ children }) => {
           {/* Grid (not plain block) so a child styled `height: 100%` still
               fills - and stays vertically centered in - the box while it's
               only one screen tall, then simply makes this element taller once
-              its content outgrows that screen. */}
-          <div ref={contentRef} style={{ display: 'grid', minHeight: minContentHeight }}>
+              its content outgrows that screen.
+
+              border-box so the padding counts towards that one-screen
+              minimum rather than adding to it, and so a short page still
+              fills exactly one screen. */}
+          <div ref={contentRef} style={contentStyle}>
             {children}
           </div>
         </div>

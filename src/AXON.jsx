@@ -2,6 +2,7 @@ import React from 'react'
 import { useBreakpoint } from './gridLayout'
 import { getProjectPageStyles } from './projectPageStyles'
 import AXONDesign from './assets/Icons/Pictures/AXONDesign.png'
+import AXONGraph from './assets/Icons/Pictures/AXONGraph.png'
 
 
 import ReactIcon from './assets/Icons/Skills/React.svg'
@@ -24,11 +25,13 @@ const AXON = () => {
 
       <div style={styles.bread}>
         <img src={AXONDesign} style={styles.image}/>
-        <p style={styles.text}>In the early stages of our product conceptualisation, we developed AXON, a chatbot prototype designed to answer questions about WCAG guidelines. This prototype was used to verify the need for Accessibility guidance, and was shown to UI designers, Developers, and Quality Assurance workers.<br/><br/>
+        <p style={styles.text}>In the early stages of our product conceptualisation, we developed AXON, a chatbot prototype designed to answer questions about WCAG guidelines. This prototype was used to verify the need for Accessibility guidance, and was shown to UI designers, Developers, and Quality Assurance workers.</p>
+      </div>
 
-          The backend of AXON consisted of python scripts implementing OpenAI API, and Facebook AI Similarity Search, vectorising WCAG guidelines and comparing users questions to them. This allowed us to create a RAG system for our chatbot, aiming to ensure validity of answers.<br/><br/>
-
-          While the prototype was well received, certain implementation errors made AXON slightly wonky. Additionally, in order to keep costs down, the free web app hosting service Render was used, which meant that the first response from the AI could take up to 15 minutes to be generated.</p>
+      <div style={{width: '70%', display: 'flex', flexDirection: 'column', gap: '32px', alignItems: 'center'}}>
+        <p style={{width: '80%'}}>The backend of AXON consisted of python scripts implementing OpenAI API, and Facebook AI Similarity Search, vectorising WCAG guidelines and comparing users questions to them. This allowed us to create a RAG system for our chatbot, aiming to ensure validity of answers.</p>
+        <img src={AXONGraph}/>
+        <p style={{width: '80%'}}>While the prototype was well received, certain implementation errors made AXON slightly wonky. Additionally, in order to keep costs down, the free web app hosting service Render was used, which meant that the first response from the AI could take up to 15 minutes to be generated.</p>
       </div>
 
       <div style={styles.tech}>

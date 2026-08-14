@@ -34,9 +34,11 @@ const buildProjectPageStyles = (breakpoint, imageWidth) => {
       justifyContent: 'center',
       gap: 'var(--block-gap)',
       boxSizing: 'border-box',
-      // Room for the fixed back button (see BackButton), which floats over
-      // the top-left corner of the content box once it spans the full width.
-      padding: stacked ? '80px 24px 48px' : 0,
+      // Sides only. The space above the first block and below the last is
+      // ContentPage's job (see its PADDING_TOP/PADDING_BOTTOM), so that every
+      // content page is spaced the same way and none of them has to
+      // remember to leave room for the fixed back button.
+      padding: stacked ? '0 24px' : 0,
       textAlign: stacked ? 'center' : 'start',
     },
     headings: {

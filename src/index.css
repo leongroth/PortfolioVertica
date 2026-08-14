@@ -51,6 +51,14 @@ body {
 
   /* Standard gap between the big blocks inside a content box. */
   --block-gap: 64px;
+
+  /* Space above the first block and below the last one on a content page.
+     ContentPage applies these, not the individual pages, so every content
+     page is spaced identically however it's built. */
+  --content-pad-y: 64px;
+  /* Extra room below the last block, on top of --content-pad-y, so the end
+     of a long page isn't flush against the bottom of the screen. */
+  --content-buffer: 64px;
 }
 
 /* Tablet: 768px - 1399px */
@@ -68,6 +76,8 @@ body {
 
     --icon-size: 42px;
     --block-gap: 40px;
+    --content-pad-y: 48px;
+    --content-buffer: 48px;
   }
 }
 
@@ -86,6 +96,8 @@ body {
 
     --icon-size: 32px;
     --block-gap: 24px;
+    --content-pad-y: 40px;
+    --content-buffer: 40px;
   }
 }
 
