@@ -1,11 +1,27 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { LINE_WIDTH, PAGE_STYLE, CARD_SHELL_STYLE, gridPlacement } from './gridConstants'
-import { useGridDimensions, createMatrix, markOccupied, fillDecorativeSquares } from './gridLayout'
+import { LINE_WIDTH, getPageStyle, CARD_SHELL_STYLE, gridPlacement } from './gridConstants'
+import { useGridDimensions, createMatrix, markOccupied, fillDecorativeSquares, resolveColSpan } from './gridLayout'
 import { assignIcons, assignStrings } from './icons'
 import BackButton from './BackButton'
 import Square from './Square'
 
 const CONTENT_WIDTH_RATIO = 0.75
+
+// Space above the first block and below the last one. It lives here rather
+// than in each page's own styles so that every content page has exactly the
+// same breathing room whatever it puts inside - a page can't get this wrong
+// by forgetting it or picking its own number. The sizes themselves are in
+// index.css, per breakpoint.
+//
+// The bottom gets --content-buffer on top of that, so scrolling to the end
+// of a long page leaves the last block clear of the bottom of the screen
+// instead of pressed against it.
+const PADDING_TOP = 'var(--content-pad-y)'
+const PADDING_BOTTOM = 'calc(var(--content-pad-y) + var(--content-buffer))'
+// A phone's box is the full width of the screen, so the fixed back button
+// floats over its top-left corner rather than sitting in a margin beside it;
+// the first block starts below the button instead of behind it.
+const PADDING_TOP_PHONE = 'calc(var(--content-pad-y) + 32px)'
 
 // A page with the same grid background as the main page, but no nav bar and
 // no sections: just one large content area (~75% of the width, centered)
@@ -18,7 +34,7 @@ const CONTENT_WIDTH_RATIO = 0.75
 // as long as you like and the page simply scrolls, with the decorative
 // squares down either side growing with it.
 const ContentPage = ({ children }) => {
-  const { cols, rows, unit } = useGridDimensions()
+  const { cols, rows, unit, breakpoint } = useGridDimensions()
   const pitch = unit + LINE_WIDTH
   const contentRef = useRef(null)
 
@@ -55,12 +71,25 @@ const ContentPage = ({ children }) => {
     return () => observer.disconnect()
   }, [pitch, minContentHeight])
 
-  // Parity-matched to cols so the box sits exactly centered and is
-  // therefore its own mirror image - required for the decorative squares
-  // around it to mirror correctly (see gridLayout's isMatrixSymmetric).
-  let contentColSpan = Math.round(cols * CONTENT_WIDTH_RATIO)
-  contentColSpan = Math.max(2, Math.min(cols - 2, contentColSpan))
-  if ((cols - contentColSpan) % 2 !== 0) contentColSpan -= 1
+  // Three quarters of the width on desktop, where there's room to spare for
+  // decorative squares down each side; one column of squares either side on
+  // a tablet; the whole width on a phone, which has 3-7 columns in total and
+  // no width to give away.
+  //
+  // Parity-matched to cols so the box sits exactly centered and is therefore
+  // its own mirror image - required for the decorative squares around it to
+  // mirror correctly (see gridLayout's isMatrixSymmetric). 'full' and 'wide'
+  // are already parity-safe, being cols and cols-2.
+  let contentColSpan
+  if (breakpoint === 'phone') {
+    contentColSpan = resolveColSpan('full', cols)
+  } else if (breakpoint === 'tablet') {
+    contentColSpan = resolveColSpan('wide', cols)
+  } else {
+    contentColSpan = Math.round(cols * CONTENT_WIDTH_RATIO)
+    contentColSpan = Math.max(2, Math.min(cols - 2, contentColSpan))
+    if ((cols - contentColSpan) % 2 !== 0) contentColSpan -= 1
+  }
   const contentCol = (cols - contentColSpan) / 2
 
   // The box spans every row, so the grid is exactly as tall as the box and
@@ -90,9 +119,17 @@ const ContentPage = ({ children }) => {
     gap: `${LINE_WIDTH}px`,
   }
 
+  const contentStyle = {
+    display: 'grid',
+    boxSizing: 'border-box',
+    minHeight: minContentHeight,
+    paddingTop: breakpoint === 'phone' ? PADDING_TOP_PHONE : PADDING_TOP,
+    paddingBottom: PADDING_BOTTOM,
+  }
+
   return (
-    <div style={PAGE_STYLE}>
-      <BackButton />
+    <div style={getPageStyle(breakpoint)}>
+      <BackButton breakpoint={breakpoint} />
       <div style={gridStyle}>
         {squares.map((cell, i) => (
           <Square key={`square-${i}`} {...cell} />
@@ -109,8 +146,12 @@ const ContentPage = ({ children }) => {
           {/* Grid (not plain block) so a child styled `height: 100%` still
               fills - and stays vertically centered in - the box while it's
               only one screen tall, then simply makes this element taller once
-              its content outgrows that screen. */}
-          <div ref={contentRef} style={{ display: 'grid', minHeight: minContentHeight }}>
+              its content outgrows that screen.
+
+              border-box so the padding counts towards that one-screen
+              minimum rather than adding to it, and so a short page still
+              fills exactly one screen. */}
+          <div ref={contentRef} style={contentStyle}>
             {children}
           </div>
         </div>

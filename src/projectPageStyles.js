@@ -1,0 +1,89 @@
+// Shared layout for the five project pages (ACES, AXON, React, Freelance
+// work, Angular platform). They're all the same shape - a heading block, an
+// image beside a column of text, and a row of tech icons - so the styling
+// lives here once and each page only supplies its own words, its own image
+// and how wide that image should be.
+//
+// The one thing that changes with screen size is the middle block: on
+// desktop the image and the text sit side by side at 40% width each, and
+// anywhere narrower they stack, because splitting a tablet's content box in
+// two leaves a column of text too narrow to read. Type sizes, icon sizes and
+// the gap between blocks come from the CSS variables in index.css, so they
+// step down a breakpoint at a time without this file knowing the numbers.
+// Cached per (breakpoint, imageWidth) so a re-render hands React the same
+// style objects it saw last time and it can skip diffing them - see the
+// matching note in projectCardStyles.js.
+const cache = new Map()
+
+export const getProjectPageStyles = (breakpoint, { imageWidth = '40%' } = {}) => {
+  const key = `${breakpoint}|${imageWidth}`
+  if (!cache.has(key)) cache.set(key, buildProjectPageStyles(breakpoint, imageWidth))
+  return cache.get(key)
+}
+
+const buildProjectPageStyles = (breakpoint, imageWidth) => {
+  const stacked = breakpoint !== 'desktop'
+
+  return {
+    main: {
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 'var(--block-gap)',
+      boxSizing: 'border-box',
+      // Sides only. The space above the first block and below the last is
+      // ContentPage's job (see its PADDING_TOP/PADDING_BOTTOM), so that every
+      // content page is spaced the same way and none of them has to
+      // remember to leave room for the fixed back button.
+      padding: stacked ? '0 24px' : 0,
+      textAlign: stacked ? 'center' : 'start',
+    },
+    headings: {
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    bread: {
+      display: 'flex',
+      flexDirection: stacked ? 'column' : 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 'var(--block-gap)',
+      width: '100%',
+    },
+    image: {
+      // Stacked, the image gets the width of the box rather than its own
+      // share of a row - capped by height as well so a tall mockup can't
+      // push the text off the bottom of a short screen.
+      width: stacked ? (breakpoint === 'phone' ? '80%' : '45%') : imageWidth,
+      maxHeight: stacked ? '35vh' : undefined,
+      objectFit: 'contain',
+    },
+    text: {
+      width: stacked ? '100%' : '40%',
+      margin: 0,
+      textAlign: 'start',
+    },
+    tech: {
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    skills: {
+      display: 'flex',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      gap: '16px',
+    },
+    skillIcon: {
+      width: 'var(--icon-size)',
+      height: 'var(--icon-size)',
+    },
+  }
+}

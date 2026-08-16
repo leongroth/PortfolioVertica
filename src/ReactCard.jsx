@@ -2,13 +2,13 @@ import React from 'react'
 import ACESMockup from './assets/Icons/Pictures/ACESMockup.png'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getProjectCardStyles } from './projectCardStyles'
 import { TYPE } from './typography'
 
-const ReactCard = ({ sectionIndex }) => {
-
-    const [hover, setHover] = useState(styles.btn)
+const ReactCard = ({ sectionIndex, breakpoint }) => {
+    const styles = getProjectCardStyles(breakpoint, { imageWidth: '100%', lift: true })
+    const [hovered, setHovered] = useState(false)
     const navigate = useNavigate()
-
 
   return (
     <div style={styles.mainContainer}>
@@ -18,57 +18,13 @@ const ReactCard = ({ sectionIndex }) => {
             <h2 style={{...TYPE.h2, margin: 0}}>ACES</h2>
             <h6 style={{...TYPE.h6, margin: 0}}>Our own Accessibility tool</h6>
         </div>
-        
-        <button style={hover} onMouseEnter={() => {setHover(styles.hoverBtn)}} onMouseLeave={() => {setHover(styles.btn)}} onClick={() => navigate('/react', { state: { sectionIndex } })}>
+
+        <button style={hovered ? styles.hoverBtn : styles.btn} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onClick={() => navigate('/react', { state: { sectionIndex } })}>
             Read more
         </button>
       </div>
     </div>
   )
-}
-
-const styles = {
-    mainContainer: {
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-end',
-        width: '100%',
-        height: '100%',
-        overflow: 'visible',
-        alignItems: 'center',
-        paddingBottom: '24px',
-    },
-    image: {
-        width: '100%',
-        position: 'relative',
-        top: '-10%',
-    },
-    container: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
-        alignItems: 'center'
-    },
-    containterTwo: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-    },
-    btn: {
-        backgroundColor: '#FFAA00',
-        padding: '16px 32px',
-        width: 'fit-content',
-        border: 'none',
-        borderRadius: '16px',
-    },
-    hoverBtn: {
-        backgroundColor: '#DE9400',
-        padding: '16px 32px',
-        width: 'fit-content',
-        border: 'none',
-        borderRadius: '16px',
-    },
-
 }
 
 export default ReactCard
